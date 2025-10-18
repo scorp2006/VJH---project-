@@ -47,7 +47,12 @@ code {
 .btn-primary:hover {
   background-color: #8b6b3a;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(164, 124, 72, 0.3);
+  box-shadow: 0 6px 20px rgba(164, 124, 72, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(164, 124, 72, 0.3);
 }
 
 .btn-secondary {
@@ -59,6 +64,12 @@ code {
 .btn-secondary:hover {
   background-color: #a47c48;
   color: #f5e8c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(164, 124, 72, 0.25);
+}
+
+.btn-secondary:active {
+  transform: translateY(0px);
 }
 
 .card {
@@ -67,12 +78,12 @@ code {
   padding: 24px;
   box-shadow: 0 4px 16px rgba(164, 124, 72, 0.2);
   color: #f5e8c7;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(164, 124, 72, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(164, 124, 72, 0.35);
 }
 
 .card.clickable {
@@ -80,8 +91,14 @@ code {
 }
 
 .card.clickable:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(164, 124, 72, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(164, 124, 72, 0.35);
+  cursor: pointer;
+}
+
+.card.clickable:active {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(164, 124, 72, 0.3);
 }
 
 .card-header {
@@ -411,11 +428,13 @@ code {
   padding: 16px;
   background-color: rgba(245, 232, 199, 0.1);
   border-radius: 8px;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .activity-item:hover {
-  background-color: rgba(245, 232, 199, 0.2);
+  background-color: rgba(245, 232, 199, 0.25);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(164, 124, 72, 0.15);
 }
 
 .activity-icon {
@@ -483,6 +502,11 @@ code {
   text-decoration: none;
   color: inherit;
   display: block;
+  transition: opacity 0.2s ease;
+}
+
+.classroom-link:hover {
+  opacity: 0.95;
 }
 
 .classroom-card {
@@ -785,11 +809,13 @@ code {
   padding: 16px;
   background-color: rgba(245, 232, 199, 0.1);
   border-radius: 8px;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .assignment-item:hover {
-  background-color: rgba(245, 232, 199, 0.2);
+  background-color: rgba(245, 232, 199, 0.25);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(164, 124, 72, 0.15);
 }
 
 .assignment-info {
@@ -1098,12 +1124,12 @@ code {
 }
 
 .submission-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .submission-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(164, 124, 72, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(164, 124, 72, 0.35);
 }
 
 .submission-content {
@@ -1256,11 +1282,13 @@ code {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
   border-bottom: 1px solid rgba(245, 232, 199, 0.2);
-  transition: background-color 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .table-row:hover {
-  background-color: rgba(245, 232, 199, 0.05);
+  background-color: rgba(245, 232, 199, 0.1);
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(164, 124, 72, 0.1);
 }
 
 .table-row:last-child {
@@ -1380,14 +1408,19 @@ code {
   width: 400px;
   max-width: 100%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 8px 32px rgba(164, 124, 72, 0.2);
 }
 
 .role-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(164, 124, 72, 0.3);
+  transform: translateY(-10px);
+  box-shadow: 0 20px 56px rgba(164, 124, 72, 0.35);
   border-color: #8b6b3a;
+}
+
+.role-card:active {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(164, 124, 72, 0.3);
 }
 
 .role-card.selected {
@@ -1612,12 +1645,12 @@ code {
   border-radius: 16px;
   text-align: center;
   box-shadow: 0 4px 20px rgba(164, 124, 72, 0.15);
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(164, 124, 72, 0.25);
+  transform: translateY(-10px);
+  box-shadow: 0 16px 48px rgba(164, 124, 72, 0.3);
 }
 
 .feature-icon-large {
@@ -1664,12 +1697,12 @@ code {
   min-width: 220px;
   max-width: 280px;
   box-shadow: 0 4px 20px rgba(164, 124, 72, 0.15);
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .step-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 32px rgba(164, 124, 72, 0.25);
+  transform: scale(1.06) translateY(-4px);
+  box-shadow: 0 12px 40px rgba(164, 124, 72, 0.3);
 }
 
 .step-number {

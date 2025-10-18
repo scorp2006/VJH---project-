@@ -17,6 +17,12 @@ import {
   Cell,
 } from "recharts";
 import Card from "../components/Card";
+import BarChartIcon from '@mui/icons-material/BarChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import StarIcon from '@mui/icons-material/Star';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
 
 interface StudentData {
   id: string;
@@ -313,7 +319,9 @@ const StudentAnalytics: React.FC = () => {
       <div className="page-content">
         <div className="container">
           <div style={{ textAlign: 'center', paddingTop: '100px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
+            <div style={{ marginBottom: '20px' }}>
+              <BarChartIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+            </div>
             <div style={{ fontSize: '18px', color: '#4B2E05' }}>
               Loading student analytics...
             </div>
@@ -391,14 +399,16 @@ const StudentAnalytics: React.FC = () => {
             </div>
           </Card>
           <Card title="Performance Level" subtitle="Based on theta">
-            <div className="stat-number" style={{ fontSize: '20px' }}>
-              {analytics.averageTheta >= 1.5
-                ? '🏆 Advanced'
-                : analytics.averageTheta >= 0.5
-                ? '⭐ Above Avg'
-                : analytics.averageTheta >= -0.5
-                ? '✓ Average'
-                : '⚠️ Below Avg'}
+            <div className="stat-number" style={{ fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {analytics.averageTheta >= 1.5 ? (
+                <><EmojiEventsIcon style={{ color: '#FFD700' }} /> Advanced</>
+              ) : analytics.averageTheta >= 0.5 ? (
+                <><StarIcon style={{ color: '#FFA500' }} /> Above Avg</>
+              ) : analytics.averageTheta >= -0.5 ? (
+                <><CheckCircleIcon style={{ color: '#4CAF50' }} /> Average</>
+              ) : (
+                <><WarningIcon style={{ color: '#FF9800' }} /> Below Avg</>
+              )}
             </div>
           </Card>
         </div>
@@ -408,7 +418,9 @@ const StudentAnalytics: React.FC = () => {
           <div className="grid grid-2 gap-6 mb-8">
             {/* Theta Progression */}
             <div className="chart-container">
-              <h3 className="chart-title">📈 Ability (θ) Progression</h3>
+              <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUpIcon fontSize="small" /> Ability (θ) Progression
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.thetaProgression}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -436,7 +448,9 @@ const StudentAnalytics: React.FC = () => {
 
             {/* Score Progression */}
             <div className="chart-container">
-              <h3 className="chart-title">📊 Score Progression</h3>
+              <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BarChartIcon fontSize="small" /> Score Progression
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.scoreProgression}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />

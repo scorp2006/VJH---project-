@@ -1,5 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SchoolIcon from '@mui/icons-material/School';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PersonIcon from '@mui/icons-material/Person';
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -10,15 +15,15 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   const location = useLocation();
 
   const teacherNavItems = [
-    { path: "/teacher/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/teacher/classrooms", label: "My Classrooms", icon: "🏫" },
-    { path: "/teacher/analytics", label: "Analytics", icon: "📈" },
+    { path: "/teacher/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    { path: "/teacher/classrooms", label: "My Classrooms", icon: <SchoolIcon /> },
+    { path: "/teacher/analytics", label: "Analytics", icon: <BarChartIcon /> },
   ];
 
   const studentNavItems = [
-    { path: "/student/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/student/classrooms", label: "Joined Classes", icon: "🏫" },
-    { path: "/student/submissions", label: "Submission History", icon: "📋" },
+    { path: "/student/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    { path: "/student/classrooms", label: "Joined Classes", icon: <SchoolIcon /> },
+    { path: "/student/submissions", label: "Submission History", icon: <AssignmentIcon /> },
   ];
 
   const navItems = userRole === "teacher" ? teacherNavItems : studentNavItems;
@@ -28,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
       <div className="sidebar-header">
         <h2 className="sidebar-title">EduPortal</h2>
         <div className="sidebar-user">
-          <span className="sidebar-user-icon">👤</span>
+          <span className="sidebar-user-icon"><PersonIcon /></span>
           <span className="sidebar-user-role">{userRole}</span>
         </div>
       </div>

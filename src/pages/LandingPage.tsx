@@ -1,5 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import LockIcon from '@mui/icons-material/Lock';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,32 +47,44 @@ const LandingPage: React.FC = () => {
         <h2 className="features-title">Why Choose EduPortal?</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon-large">🎯</div>
+            <div className="feature-icon-large">
+              <EmojiEventsIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>Adaptive Learning</h3>
             <p>Questions dynamically adjust based on student performance, ensuring optimal challenge levels</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-large">🧠</div>
+            <div className="feature-icon-large">
+              <PsychologyIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>Bloom's Taxonomy</h3>
             <p>Assess cognitive skills across Remember, Understand, and Apply levels for comprehensive evaluation</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-large">⚡</div>
+            <div className="feature-icon-large">
+              <FlashOnIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>Real-Time Analytics</h3>
             <p>Instant insights into student performance with AI-powered recommendations for improvement</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-large">📊</div>
+            <div className="feature-icon-large">
+              <BarChartIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>Smart Reporting</h3>
             <p>Comprehensive dashboards showing class-wide trends and individual student progress</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-large">🤖</div>
+            <div className="feature-icon-large">
+              <SmartToyIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>AI-Powered Insights</h3>
             <p>Personalized feedback generated using advanced language models from Hugging Face</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-large">🔒</div>
+            <div className="feature-icon-large">
+              <LockIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+            </div>
             <h3>Secure & Free</h3>
             <p>Built on Firebase with Google Authentication - reliable, scalable, and completely free</p>
           </div>

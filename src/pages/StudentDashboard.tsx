@@ -15,6 +15,11 @@ import Card from "../components/Card";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase/config";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import InboxIcon from '@mui/icons-material/Inbox';
 
 interface DashboardStats {
   totalClassrooms: number;
@@ -232,10 +237,10 @@ const StudentDashboard: React.FC = () => {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'submission': return '✅';
-      case 'new_assessment': return '📝';
-      case 'completed': return '🎯';
-      default: return '📊';
+      case 'submission': return <CheckCircleIcon fontSize="small" />;
+      case 'new_assessment': return <AssessmentIcon fontSize="small" />;
+      case 'completed': return <EmojiEventsIcon fontSize="small" />;
+      default: return <BarChartIcon fontSize="small" />;
     }
   };
 
@@ -258,7 +263,9 @@ const StudentDashboard: React.FC = () => {
       <div className="page-content">
         <div className="container">
           <div style={{ textAlign: 'center', paddingTop: '100px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
+            <div style={{ marginBottom: '20px' }}>
+              <BarChartIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+            </div>
             <div style={{ fontSize: '18px', color: '#4B2E05' }}>
               Loading your dashboard...
             </div>
@@ -369,8 +376,8 @@ const StudentDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="alert" style={{ marginBottom: '30px', backgroundColor: '#FFF9E6', border: '2px solid #FFC107' }}>
-            <p style={{ margin: 0, color: '#F57C00' }}>
-              📊 No activity data yet. Performance trends will appear once you complete assessments.
+            <p style={{ margin: 0, color: '#F57C00', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChartIcon fontSize="small" /> No activity data yet. Performance trends will appear once you complete assessments.
             </p>
           </div>
         )}
@@ -394,7 +401,9 @@ const StudentDashboard: React.FC = () => {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <div style={{ fontSize: '48px', marginBottom: '10px' }}>📭</div>
+                <div style={{ marginBottom: '10px' }}>
+                  <InboxIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+                </div>
                 <p>No recent activity yet. Start completing assessments!</p>
               </div>
             )}
@@ -428,7 +437,9 @@ const StudentDashboard: React.FC = () => {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <div style={{ fontSize: '48px', marginBottom: '10px' }}>✅</div>
+                <div style={{ marginBottom: '10px' }}>
+                  <CheckCircleIcon style={{ fontSize: '48px', color: '#4CAF50' }} />
+                </div>
                 <p>All caught up! No pending assessments.</p>
               </div>
             )}

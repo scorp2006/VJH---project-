@@ -5,6 +5,8 @@ import { db } from "../firebase/config";
 import { useAuth } from "../contexts/AuthContext";
 import Card from "../components/Card";
 import CreateClassroomModal from "../components/CreateClassroomModal";
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import SchoolIcon from '@mui/icons-material/School';
 
 interface Classroom {
   id: string;
@@ -50,7 +52,9 @@ const TeacherClassrooms: React.FC = () => {
     return (
       <div className="page-content">
         <div className="container" style={{ textAlign: 'center', paddingTop: '100px' }}>
-          <div style={{ fontSize: '48px' }}>⏳</div>
+          <div style={{ marginTop: '20px' }}>
+            <HourglassEmptyIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+          </div>
           <div style={{ fontSize: '18px', marginTop: '20px', color: '#4B2E05' }}>
             Loading classrooms...
           </div>
@@ -74,7 +78,9 @@ const TeacherClassrooms: React.FC = () => {
 
         {classrooms.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🏫</div>
+            <div className="empty-state-icon">
+              <SchoolIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+            </div>
             <h3 className="empty-state-title">No classrooms yet</h3>
             <p className="empty-state-subtitle">
               Create your first classroom to get started with teaching

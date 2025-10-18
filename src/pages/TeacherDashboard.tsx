@@ -14,6 +14,12 @@ import {
   Bar,
 } from "recharts";
 import Card from "../components/Card";
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SchoolIcon from '@mui/icons-material/School';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 interface DashboardStats {
   totalClassrooms: number;
@@ -220,10 +226,10 @@ const TeacherDashboard: React.FC = () => {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'assessment': return '📝';
-      case 'submission': return '✅';
-      case 'classroom': return '🏫';
-      default: return '📊';
+      case 'assessment': return <AssessmentIcon fontSize="small" />;
+      case 'submission': return <CheckCircleIcon fontSize="small" />;
+      case 'classroom': return <SchoolIcon fontSize="small" />;
+      default: return <BarChartIcon fontSize="small" />;
     }
   };
 
@@ -246,7 +252,9 @@ const TeacherDashboard: React.FC = () => {
       <div className="page-content">
         <div className="container">
           <div style={{ textAlign: 'center', paddingTop: '100px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
+            <div style={{ marginBottom: '20px' }}>
+              <BarChartIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+            </div>
             <div style={{ fontSize: '18px', color: '#4B2E05' }}>
               Loading dashboard analytics...
             </div>
@@ -296,7 +304,9 @@ const TeacherDashboard: React.FC = () => {
           <div className="grid grid-2 gap-6 mb-8">
             {/* Theta Trend Chart */}
             <div className="chart-container">
-              <h3 className="chart-title">📈 Average Ability (θ) Trend - Last 7 Days</h3>
+              <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUpIcon fontSize="small" /> Average Ability (θ) Trend - Last 7 Days
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={performanceTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -325,7 +335,9 @@ const TeacherDashboard: React.FC = () => {
 
             {/* Submission Volume Chart */}
             <div className="chart-container">
-              <h3 className="chart-title">📊 Submission Volume - Last 7 Days</h3>
+              <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShowChartIcon fontSize="small" /> Submission Volume - Last 7 Days
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={performanceTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -351,8 +363,8 @@ const TeacherDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="alert" style={{ marginBottom: '30px', backgroundColor: '#FFF9E6', border: '2px solid #FFC107' }}>
-            <p style={{ margin: 0, color: '#F57C00' }}>
-              📊 No submission data yet. Performance trends will appear once students complete assessments.
+            <p style={{ margin: 0, color: '#F57C00', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChartIcon fontSize="small" /> No submission data yet. Performance trends will appear once students complete assessments.
             </p>
           </div>
         )}
@@ -375,7 +387,9 @@ const TeacherDashboard: React.FC = () => {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <div style={{ fontSize: '48px', marginBottom: '10px' }}>📭</div>
+                <div style={{ marginBottom: '10px' }}>
+                  <AssessmentIcon style={{ fontSize: '48px', color: '#A47C48' }} />
+                </div>
                 <p>No recent activity. Create an assessment to get started!</p>
               </div>
             )}

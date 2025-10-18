@@ -19,6 +19,14 @@ import {
   Scatter,
 } from "recharts";
 import Card from "../components/Card";
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import WarningIcon from '@mui/icons-material/Warning';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import SchoolIcon from '@mui/icons-material/School';
 
 interface AnalyticsData {
   // Overview metrics
@@ -321,7 +329,9 @@ const TeacherAnalytics: React.FC = () => {
       <div className="page-content">
         <div className="container">
           <div style={{ textAlign: 'center', paddingTop: '100px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🤖</div>
+            <div style={{ marginBottom: '20px' }}>
+              <SmartToyIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+            </div>
             <div style={{ fontSize: '18px', color: '#4B2E05' }}>
               Generating AI-powered analytics...
             </div>
@@ -337,7 +347,9 @@ const TeacherAnalytics: React.FC = () => {
         <div className="container">
           <h1 className="page-title mb-6">Analytics Dashboard</h1>
           <div className="alert" style={{ backgroundColor: '#FFF9E6', border: '2px solid #FFC107' }}>
-            <h3 style={{ margin: 0, marginBottom: '10px', color: '#F57C00' }}>📊 No Analytics Data Available</h3>
+            <h3 style={{ margin: 0, marginBottom: '10px', color: '#F57C00', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChartIcon fontSize="small" /> No Analytics Data Available
+            </h3>
             <p style={{ margin: 0, color: '#666' }}>
               Analytics will appear once students start submitting assessments. Create assessments and share them with your students to get started!
             </p>
@@ -350,7 +362,9 @@ const TeacherAnalytics: React.FC = () => {
   return (
     <div className="page-content">
       <div className="container">
-        <h1 className="page-title mb-6">📊 Advanced Analytics Dashboard</h1>
+        <h1 className="page-title mb-6" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <BarChartIcon style={{ fontSize: '40px' }} /> Advanced Analytics Dashboard
+        </h1>
 
         {/* Overview Cards */}
         <div className="grid grid-4 mb-8">
@@ -377,7 +391,9 @@ const TeacherAnalytics: React.FC = () => {
         {/* Performance Timeline */}
         {analyticsData.performanceTimeline.some(d => d.count > 0) && (
           <div className="chart-container mb-8">
-            <h3 className="chart-title">📈 Performance Trend - Last 14 Days (Rasch θ)</h3>
+            <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUpIcon fontSize="small" /> Performance Trend - Last 14 Days (Rasch θ)
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={analyticsData.performanceTimeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -393,7 +409,9 @@ const TeacherAnalytics: React.FC = () => {
         {/* Theta Distribution */}
         <div className="grid grid-3 gap-6 mb-8">
           <div className="chart-container">
-            <h3 className="chart-title">🎯 Ability Distribution (θ)</h3>
+            <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <EmojiEventsIcon fontSize="small" /> Ability Distribution (θ)
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={analyticsData.thetaDistribution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -410,7 +428,9 @@ const TeacherAnalytics: React.FC = () => {
           </div>
 
           <div className="chart-container">
-            <h3 className="chart-title">📚 Accuracy by Difficulty</h3>
+            <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MenuBookIcon fontSize="small" /> Accuracy by Difficulty
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={analyticsData.difficultyAccuracy}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -427,7 +447,9 @@ const TeacherAnalytics: React.FC = () => {
           </div>
 
           <div className="chart-container">
-            <h3 className="chart-title">🎓 Accuracy by Bloom Level</h3>
+            <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <SchoolIcon fontSize="small" /> Accuracy by Bloom Level
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={analyticsData.bloomAccuracy}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -447,7 +469,10 @@ const TeacherAnalytics: React.FC = () => {
         {/* Top Performers & At-Risk Students */}
         <div className="grid grid-2 gap-6 mb-8">
           {analyticsData.topPerformers.length > 0 && (
-            <Card title="🏆 Top Performers" subtitle="Highest Rasch θ">
+            <Card title="Top Performers" subtitle="Highest Rasch θ">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '18px', fontWeight: '600' }}>
+                <EmojiEventsIcon style={{ color: '#FFD700' }} /> Top Performers
+              </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', fontSize: '14px' }}>
                   <thead>
@@ -474,7 +499,10 @@ const TeacherAnalytics: React.FC = () => {
           )}
 
           {analyticsData.atRiskStudents.length > 0 && (
-            <Card title="⚠️ At-Risk Students" subtitle="Need intervention">
+            <Card title="At-Risk Students" subtitle="Need intervention">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '18px', fontWeight: '600' }}>
+                <WarningIcon style={{ color: '#FF9800' }} /> At-Risk Students
+              </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', fontSize: '14px' }}>
                   <thead>
@@ -503,7 +531,10 @@ const TeacherAnalytics: React.FC = () => {
 
         {/* Assessment Breakdown */}
         {analyticsData.assessmentStats.length > 0 && (
-          <Card title="📝 Assessment Performance" subtitle="Breakdown by assessment">
+          <Card title="Assessment Performance" subtitle="Breakdown by assessment">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '18px', fontWeight: '600' }}>
+              <AssessmentIcon /> Assessment Performance
+            </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', fontSize: '14px' }}>
                 <thead>

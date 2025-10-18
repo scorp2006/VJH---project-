@@ -15,6 +15,20 @@ import {
 import Card from "../components/Card";
 import CreateAssessmentModal from "../components/CreateAssessmentModal";
 import { db } from "../firebase/config";
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import GroupIcon from '@mui/icons-material/Group';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot, updateDoc } from "firebase/firestore";
 import { generateClassroomInsights, ClassroomInsights } from "../services/intelligentAnalyticsService";
 
@@ -440,8 +454,10 @@ const ClassroomDetails: React.FC = () => {
     return (
       <div className="page-content">
         <div className="container" style={{ textAlign: 'center', paddingTop: '100px' }}>
-          <div style={{ fontSize: '48px' }}>⏳</div>
-          <div style={{ fontSize: '18px', marginTop: '20px', color: '#4B2E05' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <HourglassEmptyIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+          </div>
+          <div style={{ fontSize: '18px', color: '#4B2E05' }}>
             Loading classroom...
           </div>
         </div>
@@ -542,7 +558,9 @@ const ClassroomDetails: React.FC = () => {
 
               {assessments.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">📝</div>
+                  <div className="empty-state-icon">
+                    <EditNoteIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+                  </div>
                   <h3 className="empty-state-title">No assessments yet</h3>
                   <p className="empty-state-subtitle">
                     Create your first adaptive assessment to start evaluating students
@@ -601,7 +619,9 @@ const ClassroomDetails: React.FC = () => {
               <h3 className="mb-6">Students ({students.length})</h3>
               {students.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">👥</div>
+                  <div className="empty-state-icon">
+                    <GroupIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+                  </div>
                   <h3 className="empty-state-title">No students yet</h3>
                   <p className="empty-state-subtitle">
                     Students will appear here once they join using the class code
@@ -648,7 +668,9 @@ const ClassroomDetails: React.FC = () => {
             <div>
               {analyticsLoading ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '20px' }}>🤖</div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <SmartToyIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+                  </div>
                   <h2>Generating AI-Powered Analytics...</h2>
                   <p style={{ color: '#666', marginTop: '10px' }}>
                     Analyzing classroom performance using Rasch Model IRT
@@ -656,7 +678,9 @@ const ClassroomDetails: React.FC = () => {
                 </div>
               ) : !analytics || analytics.totalSubmissions === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">📊</div>
+                  <div className="empty-state-icon">
+                    <BarChartIcon style={{ fontSize: '64px', color: '#A47C48' }} />
+                  </div>
                   <h3 className="empty-state-title">No Analytics Data Yet</h3>
                   <p className="empty-state-subtitle">
                     Analytics will appear once students complete assessments in this classroom
@@ -692,7 +716,9 @@ const ClassroomDetails: React.FC = () => {
                   <div className="grid grid-2 gap-6 mb-8">
                     {/* Theta Distribution */}
                     <div className="chart-container">
-                      <h3 className="chart-title">📊 Ability Distribution (θ)</h3>
+                      <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BarChartIcon fontSize="small" /> Ability Distribution (θ)
+                      </h3>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={analytics.thetaDistribution}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -717,7 +743,9 @@ const ClassroomDetails: React.FC = () => {
 
                     {/* Accuracy by Difficulty */}
                     <div className="chart-container">
-                      <h3 className="chart-title">📈 Accuracy by Difficulty</h3>
+                      <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TrendingUpIcon fontSize="small" /> Accuracy by Difficulty
+                      </h3>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={analytics.difficultyAccuracy}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#A47C48" opacity={0.3} />
@@ -743,7 +771,9 @@ const ClassroomDetails: React.FC = () => {
 
                   {/* Assessment Status */}
                   <div className="chart-container mb-8">
-                    <h3 className="chart-title">📝 Assessment Status Overview</h3>
+                    <h3 className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AssignmentIcon fontSize="small" /> Assessment Status Overview
+                    </h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -766,7 +796,10 @@ const ClassroomDetails: React.FC = () => {
                   {/* Top Performers */}
                   {analytics.topPerformers.length > 0 && (
                     <div className="mb-8">
-                      <Card title="🏆 Top Performers" subtitle="Highest ability estimates">
+                      <Card title="Top Performers" subtitle="Highest ability estimates">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+                          <EmojiEventsIcon style={{ color: '#FFD700' }} /> Top Performers
+                        </div>
                         <div style={{ overflowX: 'auto' }}>
                           <table className="data-table">
                             <thead>
@@ -813,7 +846,10 @@ const ClassroomDetails: React.FC = () => {
                   {/* At-Risk Students */}
                   {analytics.atRiskStudents.length > 0 && (
                     <div className="mb-8">
-                      <Card title="⚠️ At-Risk Students" subtitle="Students who need support (θ < -0.5)">
+                      <Card title="At-Risk Students" subtitle="Students who need support (θ < -0.5)">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+                          <WarningIcon style={{ color: '#FF9800' }} /> At-Risk Students
+                        </div>
                         <div style={{ overflowX: 'auto' }}>
                           <table className="data-table">
                             <thead>
@@ -854,11 +890,14 @@ const ClassroomDetails: React.FC = () => {
                   {aiInsights && (
                     <div className="grid grid-2 gap-6 mb-8">
                       {/* Classroom Strengths */}
-                      <Card title="💪 Classroom Strengths" subtitle="AI-Generated Insights">
+                      <Card title="Classroom Strengths" subtitle="AI-Generated Insights">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+                          <TrackChangesIcon style={{ color: '#4CAF50' }} /> Classroom Strengths
+                        </div>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                           {aiInsights.aiInsights.classStrengths.map((strength: string, index: number) => (
-                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '20px', position: 'relative' }}>
-                              <span style={{ position: 'absolute', left: 0 }}>✅</span>
+                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '28px', position: 'relative', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <CheckCircleIcon style={{ position: 'absolute', left: 0, fontSize: '18px', color: '#4CAF50', marginTop: '2px' }} />
                               {strength}
                             </li>
                           ))}
@@ -866,11 +905,14 @@ const ClassroomDetails: React.FC = () => {
                       </Card>
 
                       {/* Areas for Improvement */}
-                      <Card title="📚 Areas for Improvement" subtitle="AI-Generated Insights">
+                      <Card title="Areas for Improvement" subtitle="AI-Generated Insights">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+                          <LibraryBooksIcon style={{ color: '#2196F3' }} /> Areas for Improvement
+                        </div>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                           {aiInsights.aiInsights.classWeaknesses.map((weakness: string, index: number) => (
-                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '20px', position: 'relative' }}>
-                              <span style={{ position: 'absolute', left: 0 }}>📌</span>
+                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '28px', position: 'relative', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <PushPinIcon style={{ position: 'absolute', left: 0, fontSize: '18px', color: '#FF9800', marginTop: '2px' }} />
                               {weakness}
                             </li>
                           ))}
@@ -882,11 +924,14 @@ const ClassroomDetails: React.FC = () => {
                   {/* Teaching Recommendations */}
                   {aiInsights && (
                     <div className="mb-8">
-                      <Card title="💡 Teaching Recommendations" subtitle="AI-Generated Suggestions">
+                      <Card title="Teaching Recommendations" subtitle="AI-Generated Suggestions">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
+                          <LightbulbIcon style={{ color: '#FFC107' }} /> Teaching Recommendations
+                        </div>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                           {aiInsights.aiInsights.teachingRecommendations.map((rec: string, index: number) => (
-                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '20px', position: 'relative' }}>
-                              <span style={{ position: 'absolute', left: 0 }}>🎯</span>
+                            <li key={index} style={{ marginBottom: '12px', paddingLeft: '28px', position: 'relative', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <TrackChangesIcon style={{ position: 'absolute', left: 0, fontSize: '18px', color: '#2196F3', marginTop: '2px' }} />
                               {rec}
                             </li>
                           ))}
