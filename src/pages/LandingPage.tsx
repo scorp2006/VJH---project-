@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
@@ -7,6 +7,125 @@ import FlashOnIcon from '@mui/icons-material/FlashOn';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import LockIcon from '@mui/icons-material/Lock';
+
+const STAGGER = 0.035;
+
+const Typewriter: React.FC<{ text: string; delay?: number }> = ({ text, delay = 0 }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    const startTimeout = setTimeout(() => {
+      setHasStarted(true);
+    }, delay);
+
+    return () => clearTimeout(startTimeout);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 80);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, text, hasStarted]);
+
+  return (
+    <span>
+      {displayText}
+      {currentIndex < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+          style={{ borderRight: '3px solid #A47C48', paddingRight: '2px' }}
+        >
+        </motion.span>
+      )}
+    </span>
+  );
+};
+
+const TextRoll: React.FC<{
+  children: string;
+  className?: string;
+  center?: boolean;
+}> = ({ children, className, center = false }) => {
+  return (
+    <motion.span
+      initial="initial"
+      whileHover="hovered"
+      style={{
+        position: 'relative',
+        display: 'block',
+        overflow: 'hidden',
+        lineHeight: 0.75
+      }}
+    >
+      <div>
+        {children.split("").map((l, i) => {
+          const delay = center
+            ? STAGGER * Math.abs(i - (children.length - 1) / 2)
+            : STAGGER * i;
+
+          return (
+            <motion.span
+              variants={{
+                initial: {
+                  y: 0,
+                },
+                hovered: {
+                  y: "-100%",
+                },
+              }}
+              transition={{
+                ease: "easeInOut",
+                delay,
+              }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l}
+            </motion.span>
+          );
+        })}
+      </div>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        {children.split("").map((l, i) => {
+          const delay = center
+            ? STAGGER * Math.abs(i - (children.length - 1) / 2)
+            : STAGGER * i;
+
+          return (
+            <motion.span
+              variants={{
+                initial: {
+                  y: "100%",
+                },
+                hovered: {
+                  y: 0,
+                },
+              }}
+              transition={{
+                ease: "easeInOut",
+                delay,
+              }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l}
+            </motion.span>
+          );
+        })}
+      </div>
+    </motion.span>
+  );
+};
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +141,7 @@ const LandingPage: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6 }
     }
   };
 
@@ -41,7 +160,7 @@ const LandingPage: React.FC = () => {
     visible: {
       scale: 1,
       opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
+      transition: { duration: 0.5 }
     }
   };
 
@@ -50,7 +169,7 @@ const LandingPage: React.FC = () => {
     visible: {
       x: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6 }
     }
   };
 
@@ -59,7 +178,7 @@ const LandingPage: React.FC = () => {
     visible: {
       x: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6 }
     }
   };
 
@@ -73,24 +192,31 @@ const LandingPage: React.FC = () => {
         variants={staggerContainer}
       >
         <div className="hero-content">
-          <motion.h1
-            className="hero-title"
+          <motion.div
             variants={fadeInUp}
             style={{
-              background: 'linear-gradient(135deg, #A47C48 0%, #8B6B3A 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              fontSize: '64px',
+              fontWeight: '800',
+              letterSpacing: '-1px',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              color: '#A47C48'
             }}
           >
-            EduPortal
-          </motion.h1>
-          <motion.h2
-            className="hero-subtitle"
+            <TextRoll center>EduPortal</TextRoll>
+          </motion.div>
+          <motion.div
             variants={fadeInUp}
+            style={{
+              fontSize: '32px',
+              fontWeight: '600',
+              color: '#a47c48',
+              cursor: 'pointer',
+              marginBottom: '24px'
+            }}
           >
-            Adaptive Assessment Platform
-          </motion.h2>
+            <TextRoll center>Adaptive Assessment Platform</TextRoll>
+          </motion.div>
           <motion.p
             className="hero-description"
             variants={fadeInUp}
@@ -135,7 +261,7 @@ const LandingPage: React.FC = () => {
           className="features-title"
           variants={fadeInUp}
         >
-          Why Choose EduPortal?
+          <Typewriter text="Why Choose EduPortal?" delay={800} />
         </motion.h2>
         <motion.div
           className="features-grid"
