@@ -60,6 +60,8 @@ const StudentExamInterface: React.FC = () => {
   const [responses, setResponses] = useState<QuestionResponse[]>([]);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [currentTheta, setCurrentTheta] = useState<number>(0);
+  const [reviewQueue, setReviewQueue] = useState<Question[]>([]); // Questions marked for review
+  const [isReviewMode, setIsReviewMode] = useState(false); // Are we in review mode?
   const maxQuestions = useRef(30); // Maximum questions per assessment (dynamically set from assessment)
 
   // Fetch assessment data
@@ -223,7 +225,10 @@ const StudentExamInterface: React.FC = () => {
   const handleMarkForReview = () => {
     if (!currentQuestion || !raschEngine) return;
 
-    // Record this question as skipped
+    // Add to review queue
+    setReviewQueue(prev => [...prev, currentQuestion]);
+
+    // Record this question as skipped for now (will be updated if answered later)
     const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
     const response: QuestionResponse = {
       question: currentQuestion,
@@ -236,9 +241,19 @@ const StudentExamInterface: React.FC = () => {
     // Don't update theta for skipped questions
     setQuestionsAnswered(prev => prev + 1);
 
-    // Check if test is complete
+    // Check if test is complete (excluding review queue)
     if (questionsAnswered + 1 >= maxQuestions.current) {
-      setShowSubmitModal(true);
+      // If there are questions in review queue, enter review mode
+      if (reviewQueue.length + 1 > 0) { // +1 for current question we just added
+        setIsReviewMode(true);
+        // Show the first question from review queue
+        const firstReviewQuestion = reviewQueue.length > 0 ? reviewQueue[0] : currentQuestion;
+        setCurrentQuestion(firstReviewQuestion);
+        setSelectedAnswer("");
+        setQuestionStartTime(Date.now());
+      } else {
+        setShowSubmitModal(true);
+      }
       return;
     }
 
@@ -246,13 +261,62 @@ const StudentExamInterface: React.FC = () => {
     const nextQuestion = raschEngine.getNextQuestion();
 
     if (!nextQuestion) {
-      setShowSubmitModal(true);
+      // No more new questions - enter review mode if we have review queue
+      if (reviewQueue.length + 1 > 0) {
+        setIsReviewMode(true);
+        const firstReviewQuestion = reviewQueue.length > 0 ? reviewQueue[0] : currentQuestion;
+        setCurrentQuestion(firstReviewQuestion);
+        setSelectedAnswer("");
+        setQuestionStartTime(Date.now());
+      } else {
+        setShowSubmitModal(true);
+      }
       return;
     }
 
     setCurrentQuestion(nextQuestion);
     setSelectedAnswer("");
     setQuestionStartTime(Date.now());
+  };
+
+  const handleReviewAnswer = () => {
+    if (!currentQuestion || !selectedAnswer) {
+      alert("Please select an answer before proceeding");
+      return;
+    }
+
+    // Update the response for this reviewed question
+    const responseIndex = responses.findIndex(r => r.question.id === currentQuestion.id);
+    if (responseIndex !== -1) {
+      const updatedResponses = [...responses];
+      updatedResponses[responseIndex] = {
+        ...updatedResponses[responseIndex],
+        selectedAnswer: selectedAnswer,
+        markedForReview: false,
+      };
+      setResponses(updatedResponses);
+
+      // Update theta for this response
+      if (raschEngine) {
+        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+        raschEngine.recordResponse(currentQuestion.id, isCorrect, updatedResponses[responseIndex].timeTaken);
+        setCurrentTheta(raschEngine.getTheta());
+      }
+    }
+
+    // Remove from review queue
+    const updatedQueue = reviewQueue.filter(q => q.id !== currentQuestion.id);
+    setReviewQueue(updatedQueue);
+
+    // Move to next review question or finish
+    if (updatedQueue.length > 0) {
+      setCurrentQuestion(updatedQueue[0]);
+      setSelectedAnswer("");
+      setQuestionStartTime(Date.now());
+    } else {
+      // All reviews completed
+      setShowSubmitModal(true);
+    }
   };
 
   const submitAssessment = async () => {
@@ -370,7 +434,13 @@ const StudentExamInterface: React.FC = () => {
               {assessment.title}
             </h1>
             <p style={{ fontSize: '14px', color: '#666', margin: '4px 0 0 0' }}>
-              🎯 Rasch Model Adaptive Assessment - Question {questionsAnswered + 1} of {maxQuestions.current}
+              {isReviewMode ? (
+                <span style={{ color: '#FF9800', fontWeight: '600' }}>
+                  🔄 Review Mode - {reviewQueue.length} question{reviewQueue.length !== 1 ? 's' : ''} remaining
+                </span>
+              ) : (
+                <>🎯 Rasch Model Adaptive Assessment - Question {questionsAnswered + 1} of {maxQuestions.current}</>
+              )}
             </p>
             {questionsAnswered > 0 && (
               <p style={{ fontSize: '12px', color: '#2196F3', margin: '4px 0 0 0', fontWeight: '600' }}>
@@ -524,39 +594,61 @@ const StudentExamInterface: React.FC = () => {
               alignItems: 'center',
               gap: '16px'
             }}>
-              <button
-                className="btn"
-                onClick={handleMarkForReview}
-                style={{
-                  backgroundColor: '#FFC107',
-                  color: '#4B2E05',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '16px',
-                  flex: 1
-                }}
-              >
-                🏳 Mark for Review & Skip
-              </button>
+              {isReviewMode ? (
+                // Review mode - only show submit button
+                <button
+                  className="btn btn-primary"
+                  onClick={handleReviewAnswer}
+                  disabled={!selectedAnswer}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    flex: 1,
+                    opacity: !selectedAnswer ? 0.5 : 1,
+                    cursor: !selectedAnswer ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  ✓ Answer & Continue ({reviewQueue.length} left)
+                </button>
+              ) : (
+                // Normal mode - show both buttons
+                <>
+                  <button
+                    className="btn"
+                    onClick={handleMarkForReview}
+                    style={{
+                      backgroundColor: '#FFC107',
+                      color: '#4B2E05',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '16px',
+                      flex: 1
+                    }}
+                  >
+                    🏳 Mark for Review & Skip
+                  </button>
 
-              <button
-                className="btn btn-primary"
-                onClick={handleNext}
-                disabled={!selectedAnswer}
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  flex: 1,
-                  opacity: !selectedAnswer ? 0.5 : 1,
-                  cursor: !selectedAnswer ? 'not-allowed' : 'pointer'
-                }}
-              >
-                Next Question →
-              </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleNext}
+                    disabled={!selectedAnswer}
+                    style={{
+                      padding: '12px 24px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      flex: 1,
+                      opacity: !selectedAnswer ? 0.5 : 1,
+                      cursor: !selectedAnswer ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Next Question →
+                  </button>
+                </>
+              )}
             </div>
 
             <div style={{
