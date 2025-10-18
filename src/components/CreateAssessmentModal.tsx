@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase/config";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import Modal from "./Modal";
-import { classifyQuestionsBatch } from "../services/aiService";
+import { extractQuestionsIntelligently } from "../services/intelligentDocumentService";
 
 interface Question {
   id: string;
@@ -142,7 +142,9 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
 
     setPdfFile(file);
     setExtracting(true);
+    setClassifying(true);
     setError('');
+    setClassificationProgress('🤖 Reading document with AI...');
 
     try {
       const reader = new FileReader();
@@ -150,59 +152,36 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
         try {
           const text = event.target?.result as string;
 
-          // Parse questions from text
-          const extractedQuestions = parsePdfQuestions(text);
+          setClassificationProgress('🧠 Intelligently extracting questions with LangChain + Hugging Face...');
+
+          // Use intelligent AI-powered extraction (replaces dumb regex parsing)
+          const extractedQuestions = await extractQuestionsIntelligently(
+            text,
+            assessmentDetails.title || 'General',
+            assessmentDetails.description
+          );
 
           if (extractedQuestions.length === 0) {
             setError('No questions found in file. Please check the format.');
             setExtracting(false);
+            setClassifying(false);
+            setClassificationProgress('');
             return;
           }
 
-          setExtracting(false);
-          setClassifying(true);
-          setClassificationProgress(`Analyzing questions using AI... (0/${extractedQuestions.length})`);
-
-          // Use AI to classify Bloom levels and difficulty
-          try {
-            const classifications = await classifyQuestionsBatch(
-              extractedQuestions.map(q => ({ text: q.text, options: q.options })),
-              assessmentDetails.title || 'General',
-              assessmentDetails.description
-            );
-
-            // Update questions with AI classifications
-            const classifiedQuestions = extractedQuestions.map((q, index) => {
-              const classification = classifications[index];
-              setClassificationProgress(`Analyzing questions using AI... (${index + 1}/${extractedQuestions.length})`);
-
-              return {
-                ...q,
-                bloomLevel: Math.min(classification.bloomLevel, 3) as 1 | 2 | 3, // Cap at 3 for now
-                difficulty: classification.difficulty,
-                concept: q.concept || classification.bloomLevelName
-              };
-            });
-
-            setQuestions(classifiedQuestions);
-            setClassifying(false);
-            setClassificationProgress('');
-            setError(`✓ Successfully extracted and classified ${classifiedQuestions.length} questions using AI!`);
-            setTimeout(() => setError(''), 5000);
-          } catch (aiError) {
-            console.error('AI classification error:', aiError);
-            // If AI fails, use the extracted questions with defaults
-            setQuestions(extractedQuestions);
-            setClassifying(false);
-            setClassificationProgress('');
-            setError(`Successfully extracted ${extractedQuestions.length} questions (AI classification unavailable, using defaults)`);
-            setTimeout(() => setError(''), 5000);
-          }
-        } catch (err) {
-          console.error('Error parsing file:', err);
-          setError('Failed to parse file. Please try again or use manual entry.');
+          setQuestions(extractedQuestions);
           setExtracting(false);
           setClassifying(false);
+          setClassificationProgress('');
+          setError(`✓ Successfully extracted ${extractedQuestions.length} questions using AI! Bloom levels and difficulty have been intelligently classified.`);
+          setTimeout(() => setError(''), 5000);
+
+        } catch (err) {
+          console.error('Error processing file:', err);
+          setError('Failed to process file. Please try again or use manual entry.');
+          setExtracting(false);
+          setClassifying(false);
+          setClassificationProgress('');
         }
       };
       reader.readAsText(file);
@@ -211,6 +190,7 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
       setError('Failed to read file. Please try again or use manual entry.');
       setExtracting(false);
       setClassifying(false);
+      setClassificationProgress('');
     }
   };
 
@@ -338,8 +318,8 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (questions.length < 5) {
-      setError("Assessment must have at least 5 questions");
+    if (questions.length < 10) {
+      setError("Assessment must have at least 10 questions");
       return;
     }
 
@@ -412,7 +392,7 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
           fontWeight: '600',
           fontSize: '14px'
         }}>
-          2. Questions ({questions.length}/5+)
+          2. Questions ({questions.length}/10+)
         </div>
       </div>
 
@@ -477,7 +457,7 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
       {currentStep === 'questions' && (
         <div>
           <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#4b2e05' }}>
-            Add Questions (Minimum 5 required)
+            Add Questions (Minimum 10 required)
           </h3>
 
           {/* Toggle between Manual and PDF Upload */}
@@ -574,10 +554,10 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
             }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#4B2E05' }}>
-                Upload Text File with Questions
+                🤖 AI-Powered Document Upload
               </h4>
               <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-                Text file should contain numbered questions with options (A, B, C, D)
+                Upload any text file with questions - AI will intelligently extract and classify them!
               </p>
 
               <input
@@ -640,7 +620,7 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
                     </span>
                   </div>
                   <div style={{ fontSize: '12px', color: '#666' }}>
-                    AI is analyzing each question to determine Bloom's taxonomy level and difficulty...
+                    Using LangChain + Hugging Face LLM to intelligently extract and classify questions from your document...
                   </div>
                 </div>
               )}
@@ -681,8 +661,9 @@ C) Jupiter
 D) Saturn`}
                 </pre>
                 <p style={{ fontSize: '12px', color: '#999', marginTop: '12px', fontStyle: 'italic' }}>
-                  Note: Questions will be automatically analyzed using AI to determine appropriate Bloom's Taxonomy levels and difficulty.
-                  If AI is unavailable, default values will be used. You can manually edit them after extraction.
+                  💡 Powered by LangChain + Hugging Face Mistral-7B model. The AI will intelligently extract ALL questions regardless of format variations,
+                  detect Bloom levels mentioned in the document, and classify difficulty automatically.
+                  Works with messy formatting too!
                 </p>
               </div>
             </div>
@@ -835,9 +816,9 @@ D) Saturn`}
             <button
               className="btn btn-primary"
               onClick={handleSubmit}
-              disabled={loading || questions.length < 5}
+              disabled={loading || questions.length < 10}
             >
-              {loading ? 'Creating...' : `Create Assessment (${questions.length}/5+)`}
+              {loading ? 'Creating...' : `Create Assessment (${questions.length}/10+)`}
             </button>
           </div>
         </div>

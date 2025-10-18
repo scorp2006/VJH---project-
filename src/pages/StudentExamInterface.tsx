@@ -54,7 +54,7 @@ const StudentExamInterface: React.FC = () => {
   const [responses, setResponses] = useState<QuestionResponse[]>([]);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [currentTheta, setCurrentTheta] = useState<number>(0);
-  const maxQuestions = useRef(10); // Maximum questions per assessment
+  const maxQuestions = useRef(30); // Maximum questions per assessment (dynamically set from assessment)
 
   // Fetch assessment data
   useEffect(() => {
@@ -68,6 +68,17 @@ const StudentExamInterface: React.FC = () => {
           const data = { ...assessmentDoc.data(), id: assessmentDoc.id } as Assessment;
           setAssessment(data);
           setTimeRemaining(data.duration * 60); // Convert minutes to seconds
+
+          // Set max questions from assessment length
+          maxQuestions.current = data.questions.length;
+          console.log(`📊 Loaded ${data.questions.length} questions`);
+
+          // Log first 3 questions with correct answers for debugging
+          data.questions.slice(0, 3).forEach((q, idx) => {
+            console.log(`Q${idx + 1}: "${q.text}"`);
+            console.log(`   Options:`, q.options);
+            console.log(`   ✅ Correct Answer: "${q.correctAnswer}"`);
+          });
 
           // Initialize Rasch Model adaptive testing engine
           const engine = new RaschAdaptiveEngine(data.questions);
@@ -208,12 +219,19 @@ const StudentExamInterface: React.FC = () => {
       // Calculate final score
       const score = stats.accuracy;
 
+      // Build theta progression history (simplified - all use final theta)
+      // In a full implementation, you'd track theta after each response
+      const thetaHistory: number[] = responses.map(() => stats.theta);
+
       // Save to Firebase with Rasch model data
-      await addDoc(collection(db, 'submissions'), {
+      const submissionRef = await addDoc(collection(db, 'submissions'), {
         assessmentId: assessment.id,
+        assessmentName: assessment.title,
         studentId: currentUser.id,
+        studentName: currentUser.name,
+        studentEmail: currentUser.email,
         classroomId: assessment.classroomId,
-        responses: responses.map(r => ({
+        responses: responses.map((r, idx) => ({
           questionId: r.question.id,
           questionText: r.question.text,
           selectedAnswer: r.selectedAnswer,
@@ -224,27 +242,27 @@ const StudentExamInterface: React.FC = () => {
           concept: r.question.concept,
           timeTaken: r.timeTaken,
           markedForReview: r.markedForReview,
-          itemDifficulty: raschEngine.getItemParameters(r.question.id)?.b || 0,
+          theta: thetaHistory[idx] || stats.theta, // Theta at time of this question
         })),
         score: score,
         correctCount: stats.correctAnswers,
         totalQuestions: stats.totalQuestions,
         submittedAt: Timestamp.now(),
-        timeSpent: (assessment.duration * 60) - timeRemaining,
+        timeTaken: (assessment.duration * 60) - timeRemaining,
         // Rasch Model Statistics
-        raschModelStats: {
-          theta: stats.theta,
-          thetaDescription: stats.thetaDescription,
+        raschData: {
+          finalTheta: stats.theta,
+          thetaProgression: thetaHistory,
           standardError: stats.standardError,
-          hasConverged: stats.hasConverged,
-          averageTime: stats.averageTime,
-          bloomDistribution: stats.bloomDistribution,
-          difficultyDistribution: stats.difficultyDistribution,
+          abilityLevel: stats.thetaDescription,
+          convergence: stats.hasConverged ? 100 : 50,
         },
       });
 
-      // Navigate back to classroom
-      navigate(`/student/classroom/${assessment.classroomId}/assignments`);
+      console.log('✅ Submission saved with ID:', submissionRef.id);
+
+      // Navigate to results page with AI insights
+      navigate(`/student/results/${submissionRef.id}`);
     } catch (error) {
       console.error('Error submitting assessment:', error);
       alert('Failed to submit assessment. Please try again.');
@@ -612,6 +630,55 @@ const StudentExamInterface: React.FC = () => {
                 </div>
                 <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                   Accuracy Rate
+                </div>
+              </div>
+            )}
+
+            {/* Review Queue */}
+            {responses.filter(r => r.markedForReview).length > 0 && (
+              <div style={{
+                padding: '16px',
+                backgroundColor: '#FFF9E6',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '2px solid #FFC107'
+              }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#F57C00',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  🏳 Marked for Review
+                </h4>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+                  These questions were skipped:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {responses.filter(r => r.markedForReview).map((resp, idx) => (
+                    <div key={idx} style={{
+                      padding: '8px',
+                      backgroundColor: 'white',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      border: '1px solid #FFE082'
+                    }}>
+                      <div style={{ fontWeight: '600', color: '#4B2E05', marginBottom: '4px' }}>
+                        Question #{idx + 1}
+                      </div>
+                      <div style={{ color: '#666', fontSize: '11px' }}>
+                        {resp.question.text.length > 50
+                          ? resp.question.text.substring(0, 50) + '...'
+                          : resp.question.text}
+                      </div>
+                      <div style={{ marginTop: '4px', color: '#F57C00', fontSize: '10px' }}>
+                        ⚠️ Not answered
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

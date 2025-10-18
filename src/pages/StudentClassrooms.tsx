@@ -90,7 +90,7 @@ const StudentClassrooms: React.FC = () => {
             {classrooms.map((classroom) => (
               <Link
                 key={classroom.id}
-                to={`/student/classroom/${classroom.id}/assignments`}
+                to={`/student/classroom/${classroom.id}/assessments`}
                 className="classroom-link"
               >
                 <Card
@@ -108,7 +108,7 @@ const StudentClassrooms: React.FC = () => {
                     </div>
                     <div className="classroom-actions">
                       <button className="btn btn-secondary btn-sm">
-                        View Assignments
+                        View Assessments
                       </button>
                     </div>
                   </div>

@@ -9,7 +9,9 @@
       "Read(//c/Users/user/OneDrive/Desktop/**)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nImplement complete adaptive assessment system with Rasch model\n\n- Add 1-parameter Rasch model (IRT) for adaptive testing\n- Implement theta estimation using Bayesian updating\n- Add maximum information criterion for question selection\n- Integrate OpenAI GPT-4 for automated question classification\n- Build complete teacher and student dashboards\n- Add Firebase authentication and Firestore integration\n- Implement real-time assessment interface with adaptive difficulty\n- Add comprehensive analytics and submission tracking\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

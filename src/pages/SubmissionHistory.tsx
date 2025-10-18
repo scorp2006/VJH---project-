@@ -1,97 +1,193 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
-import {
-  sampleSubmissions,
-  sampleAssignments,
-  sampleClassrooms,
-} from "../data/sampleData";
+import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase/config";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+interface Submission {
+  id: string;
+  studentId: string;
+  assessmentId: string;
+  assessmentName: string;
+  classroomId: string;
+  score: number;
+  submittedAt: Date;
+  raschData?: any;
+}
+
+interface Assessment {
+  id: string;
+  title: string;
+  description: string;
+  classroomId: string;
+}
+
+interface Classroom {
+  id: string;
+  name: string;
+  subject: string;
+}
 
 const SubmissionHistory: React.FC = () => {
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "pending" | "completed"
-  >("all");
-  const [sortBy, setSortBy] = useState<"date" | "score" | "assignment">("date");
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<"all">("all");
+  const [sortBy, setSortBy] = useState<"date" | "score" | "assessment">("date");
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
+  const [assessments, setAssessments] = useState<Map<string, Assessment>>(new Map());
+  const [classrooms, setClassrooms] = useState<Map<string, Classroom>>(new Map());
 
-  // Get all submissions for the current student (assuming student ID "s1")
-  const studentSubmissions = sampleSubmissions.filter(
-    (s) => s.studentId === "s1"
-  );
+  useEffect(() => {
+    if (currentUser) {
+      loadSubmissionHistory();
+    }
+  }, [currentUser]);
+
+  const loadSubmissionHistory = async () => {
+    if (!currentUser) return;
+
+    try {
+      console.log('📊 Loading submission history...');
+
+      // Load all submissions for this student
+      const submissionsQuery = query(
+        collection(db, 'submissions'),
+        where('studentId', '==', currentUser.id)
+      );
+      const submissionsSnapshot = await getDocs(submissionsQuery);
+      const submissions: Submission[] = submissionsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        submittedAt: doc.data().submittedAt?.toDate?.() || doc.data().submittedAt || new Date(),
+      })) as Submission[];
+
+      // Get unique assessment IDs
+      const assessmentIds = Array.from(new Set(submissions.map(s => s.assessmentId)));
+
+      // Load assessments
+      const assessmentsMap = new Map<string, Assessment>();
+      if (assessmentIds.length > 0) {
+        const batchSize = 10;
+        for (let i = 0; i < assessmentIds.length; i += batchSize) {
+          const batch = assessmentIds.slice(i, i + batchSize);
+          const assessmentsQuery = query(
+            collection(db, 'assessments'),
+            where('__name__', 'in', batch)
+          );
+          const assessmentsSnapshot = await getDocs(assessmentsQuery);
+          assessmentsSnapshot.docs.forEach(doc => {
+            assessmentsMap.set(doc.id, { id: doc.id, ...doc.data() } as Assessment);
+          });
+        }
+      }
+
+      // Get unique classroom IDs
+      const classroomIds = Array.from(new Set(Array.from(assessmentsMap.values()).map(a => a.classroomId)));
+
+      // Load classrooms
+      const classroomsMap = new Map<string, Classroom>();
+      if (classroomIds.length > 0) {
+        const batchSize = 10;
+        for (let i = 0; i < classroomIds.length; i += batchSize) {
+          const batch = classroomIds.slice(i, i + batchSize);
+          const classroomsQuery = query(
+            collection(db, 'classrooms'),
+            where('__name__', 'in', batch)
+          );
+          const classroomsSnapshot = await getDocs(classroomsQuery);
+          classroomsSnapshot.docs.forEach(doc => {
+            classroomsMap.set(doc.id, { id: doc.id, ...doc.data() } as Classroom);
+          });
+        }
+      }
+
+      setAllSubmissions(submissions);
+      setAssessments(assessmentsMap);
+      setClassrooms(classroomsMap);
+
+      console.log('✅ Submission history loaded successfully');
+
+    } catch (error) {
+      console.error('Error loading submission history:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter and sort submissions
-  const filteredSubmissions = studentSubmissions
-    .filter((submission) => {
-      if (filterStatus === "all") return true;
-      return submission.status === filterStatus;
-    })
+  const filteredSubmissions = allSubmissions
     .sort((a, b) => {
       switch (sortBy) {
         case "date":
-          return (
-            new Date(b.submittedAt).getTime() -
-            new Date(a.submittedAt).getTime()
-          );
+          return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
         case "score":
           return (b.score || 0) - (a.score || 0);
-        case "assignment":
-          const assignmentA = sampleAssignments.find(
-            (as) => as.id === a.assignmentId
-          );
-          const assignmentB = sampleAssignments.find(
-            (as) => as.id === b.assignmentId
-          );
-          return (
-            assignmentA?.title.localeCompare(assignmentB?.title || "") || 0
-          );
+        case "assessment":
+          const assessmentA = assessments.get(a.assessmentId);
+          const assessmentB = assessments.get(b.assessmentId);
+          return assessmentA?.title.localeCompare(assessmentB?.title || "") || 0;
         default:
           return 0;
       }
     });
 
-  const getAssignmentInfo = (assignmentId: string) => {
-    return sampleAssignments.find((a) => a.id === assignmentId);
+  const getAssessmentInfo = (assessmentId: string) => {
+    return assessments.get(assessmentId);
   };
 
   const getClassroomInfo = (classroomId: string) => {
-    return sampleClassrooms.find((c) => c.id === classroomId);
+    return classrooms.get(classroomId);
   };
 
-  const getStatusColor = (status: string, score?: number) => {
-    if (status === "completed" && score !== undefined) {
+  const getStatusColor = (score?: number) => {
+    if (score !== undefined) {
       if (score >= 90) return "status-excellent";
       if (score >= 80) return "status-good";
       if (score >= 70) return "status-average";
       return "status-poor";
     }
-    return status === "completed" ? "status-completed" : "status-pending";
+    return "status-completed";
   };
 
-  const getStatusText = (status: string, score?: number) => {
-    if (status === "completed" && score !== undefined) {
+  const getStatusText = (score?: number) => {
+    if (score !== undefined) {
       return `${score}%`;
     }
-    return status === "completed" ? "Completed" : "Pending";
+    return "Completed";
   };
 
   const calculateOverallStats = () => {
-    const completed = studentSubmissions.filter(
-      (s) => s.status === "completed"
-    );
-    const pending = studentSubmissions.filter((s) => s.status === "pending");
     const averageScore =
-      completed.length > 0
-        ? completed.reduce((sum, s) => sum + (s.score || 0), 0) /
-          completed.length
+      allSubmissions.length > 0
+        ? allSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / allSubmissions.length
         : 0;
 
     return {
-      total: studentSubmissions.length,
-      completed: completed.length,
-      pending: pending.length,
+      total: allSubmissions.length,
+      completed: allSubmissions.length,
+      pending: 0,
       averageScore: Math.round(averageScore),
     };
   };
 
   const stats = calculateOverallStats();
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div className="container">
+          <div style={{ textAlign: 'center', paddingTop: '100px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
+            <div style={{ fontSize: '18px', color: '#4B2E05' }}>
+              Loading submission history...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-content">
@@ -120,33 +216,17 @@ const SubmissionHistory: React.FC = () => {
             <h2 className="section-title">Your Submissions</h2>
             <div className="filter-controls">
               <div className="filter-group">
-                <label className="filter-label">Filter by Status:</label>
-                <select
-                  className="filter-select"
-                  value={filterStatus}
-                  onChange={(e) =>
-                    setFilterStatus(
-                      e.target.value as "all" | "pending" | "completed"
-                    )
-                  }
-                >
-                  <option value="all">All</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-              <div className="filter-group">
                 <label className="filter-label">Sort by:</label>
                 <select
                   className="filter-select"
                   value={sortBy}
                   onChange={(e) =>
-                    setSortBy(e.target.value as "date" | "score" | "assignment")
+                    setSortBy(e.target.value as "date" | "score" | "assessment")
                   }
                 >
                   <option value="date">Date</option>
                   <option value="score">Score</option>
-                  <option value="assignment">Assignment</option>
+                  <option value="assessment">Assessment</option>
                 </select>
               </div>
             </div>
@@ -159,96 +239,81 @@ const SubmissionHistory: React.FC = () => {
             <div className="empty-state-icon">📋</div>
             <h3 className="empty-state-title">No submissions found</h3>
             <p className="empty-state-subtitle">
-              {filterStatus === "all"
-                ? "You haven't submitted any assignments yet."
-                : `No ${filterStatus} submissions found.`}
+              You haven't submitted any assessments yet.
             </p>
           </div>
         ) : (
           <div className="submissions-list">
             {filteredSubmissions.map((submission) => {
-              const assignment = getAssignmentInfo(submission.assignmentId);
-              const classroom = assignment
-                ? getClassroomInfo(assignment.classroomId)
+              const assessment = getAssessmentInfo(submission.assessmentId);
+              const classroom = assessment
+                ? getClassroomInfo(assessment.classroomId)
                 : null;
-
-              if (!assignment || !classroom) return null;
 
               return (
                 <Card
                   key={submission.id}
-                  title={assignment.title}
-                  subtitle={`${classroom.name} • ${classroom.subject}`}
+                  title={submission.assessmentName || assessment?.title || 'Assessment'}
+                  subtitle={classroom ? `${classroom.name} • ${classroom.subject}` : 'Classroom'}
                   className="submission-card"
                 >
                   <div className="submission-content">
                     <div className="submission-description">
                       <p className="assignment-description">
-                        {assignment.description}
+                        {assessment?.description || 'Adaptive assessment using Rasch Model IRT'}
                       </p>
                     </div>
 
                     <div className="submission-details">
                       <div className="detail-row">
-                        <span className="detail-label">Assignment Type:</span>
-                        <span
-                          className={`assignment-type type-${assignment.type.toLowerCase()}`}
-                        >
-                          {assignment.type}
+                        <span className="detail-label">Type:</span>
+                        <span className="assignment-type type-quiz">
+                          Adaptive Assessment
                         </span>
                       </div>
 
                       <div className="detail-row">
                         <span className="detail-label">Submitted:</span>
                         <span className="detail-value">
-                          {submission.submittedAt
-                            ? new Date(
-                                submission.submittedAt
-                              ).toLocaleDateString()
-                            : "Not submitted"}
+                          {new Date(submission.submittedAt).toLocaleDateString()}
                         </span>
                       </div>
 
                       <div className="detail-row">
-                        <span className="detail-label">Deadline:</span>
-                        <span className="detail-value">
-                          {new Date(assignment.deadline).toLocaleDateString()}
+                        <span className="detail-label">Ability Level (θ):</span>
+                        <span className="detail-value" style={{
+                          color: (submission.raschData?.finalTheta || 0) >= 0 ? '#4CAF50' : '#FF9800',
+                          fontWeight: 'bold'
+                        }}>
+                          {(submission.raschData?.finalTheta || 0).toFixed(2)}
                         </span>
                       </div>
-
-                      {submission.feedback && (
-                        <div className="detail-row">
-                          <span className="detail-label">Feedback:</span>
-                          <span className="detail-value feedback-text">
-                            {submission.feedback}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
 
                   <div className="submission-footer">
                     <div className="submission-status">
                       <span
-                        className={`status-badge ${getStatusColor(
-                          submission.status,
-                          submission.score
-                        )}`}
+                        className={`status-badge ${getStatusColor(submission.score)}`}
                       >
-                        {getStatusText(submission.status, submission.score)}
+                        {getStatusText(submission.score)}
                       </span>
                     </div>
 
                     <div className="submission-actions">
-                      {submission.status === "completed" &&
-                        submission.score !== undefined && (
-                          <div className="score-display">
-                            <span className="score-label">Score:</span>
-                            <span className="score-value">
-                              {submission.score}%
-                            </span>
-                          </div>
-                        )}
+                      <div className="score-display">
+                        <span className="score-label">Score:</span>
+                        <span className="score-value">
+                          {submission.score}%
+                        </span>
+                      </div>
+                      <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => navigate(`/student/results/${submission.id}`)}
+                        style={{ marginLeft: '10px' }}
+                      >
+                        View Details
+                      </button>
                     </div>
                   </div>
                 </Card>

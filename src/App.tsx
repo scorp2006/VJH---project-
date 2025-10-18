@@ -14,10 +14,12 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherClassrooms from "./pages/TeacherClassrooms";
 import TeacherAnalytics from "./pages/TeacherAnalytics";
 import ClassroomDetails from "./pages/ClassroomDetails";
+import StudentAnalytics from "./pages/StudentAnalytics";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentClassrooms from "./pages/StudentClassrooms";
 import StudentAssignments from "./pages/StudentAssignments";
 import StudentExamInterface from "./pages/StudentExamInterface";
+import StudentResultsPage from "./pages/StudentResultsPage";
 import SubmissionHistory from "./pages/SubmissionHistory";
 
 function AppContent() {
@@ -50,7 +52,6 @@ function AppContent() {
       "/teacher/analytics": "Analytics",
       "/student/dashboard": "Student Dashboard",
       "/student/classrooms": "Joined Classrooms",
-      "/student/assignments": "Assignments",
       "/student/submissions": "Submission History",
     };
 
@@ -59,7 +60,7 @@ function AppContent() {
       return "Classroom Details";
     }
     if (pathname.includes("/student/classroom/")) {
-      return "Classroom Assignments";
+      return "Classroom Assessments";
     }
     if (pathname.includes("/student/exam/")) {
       return "Assessment";
@@ -143,6 +144,20 @@ function AppContent() {
             }
           />
 
+          <Route
+            path="/teacher/classroom/:classroomId/student/:studentId"
+            element={
+              <>
+                <TopBar
+                  title="Student Analytics"
+                  userRole={currentUser.role as "teacher" | "student"}
+                  userName={currentUser.name}
+                />
+                <StudentAnalytics />
+              </>
+            }
+          />
+
           {/* Student Routes */}
           <Route
             path="/student/dashboard"
@@ -173,7 +188,7 @@ function AppContent() {
           />
 
           <Route
-            path="/student/classroom/:id/assignments"
+            path="/student/classroom/:id/assessments"
             element={
               <>
                 <TopBar
@@ -189,6 +204,20 @@ function AppContent() {
           <Route
             path="/student/exam/:assessmentId"
             element={<StudentExamInterface />}
+          />
+
+          <Route
+            path="/student/results/:submissionId"
+            element={
+              <>
+                <TopBar
+                  title="Assessment Results"
+                  userRole={currentUser.role as "teacher" | "student"}
+                  userName={currentUser.name}
+                />
+                <StudentResultsPage />
+              </>
+            }
           />
 
           <Route
