@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
@@ -15,119 +16,250 @@ const LandingPage: React.FC = () => {
     navigate("/login");
   };
 
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15
+      }
+    }
+  };
+
+  const scaleIn = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
+  const slideInLeft = {
+    hidden: { x: -100, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const slideInRight = {
+    hidden: { x: 100, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
   return (
     <div className="landing-page">
       {/* Hero Section */}
-      <div className="hero-section">
+      <motion.div
+        className="hero-section"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
         <div className="hero-content">
-          <h1 className="hero-title">EduPortal</h1>
-          <h2 className="hero-subtitle">Adaptive Assessment Platform</h2>
-          <p className="hero-description">
+          <motion.h1
+            className="hero-title"
+            variants={fadeInUp}
+            style={{
+              background: 'linear-gradient(135deg, #A47C48 0%, #8B6B3A 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            EduPortal
+          </motion.h1>
+          <motion.h2
+            className="hero-subtitle"
+            variants={fadeInUp}
+          >
+            Adaptive Assessment Platform
+          </motion.h2>
+          <motion.p
+            className="hero-description"
+            variants={fadeInUp}
+          >
             Transform education with AI-powered adaptive assessments that personalize learning in real-time using Bloom's Taxonomy
-          </p>
-          <div className="hero-buttons">
-            <button
+          </motion.p>
+          <motion.div
+            className="hero-buttons"
+            variants={fadeInUp}
+          >
+            <motion.button
               className="btn btn-primary btn-large"
               onClick={() => handleRoleSelection("teacher")}
+              whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(164, 124, 72, 0.4)" }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               Login as Teacher
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               className="btn btn-secondary btn-large"
               onClick={() => handleRoleSelection("student")}
+              whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(164, 124, 72, 0.3)" }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               Login as Student
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Features Section */}
-      <div className="features-section">
-        <h2 className="features-title">Why Choose EduPortal?</h2>
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <EmojiEventsIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>Adaptive Learning</h3>
-            <p>Questions dynamically adjust based on student performance, ensuring optimal challenge levels</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <PsychologyIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>Bloom's Taxonomy</h3>
-            <p>Assess cognitive skills across Remember, Understand, and Apply levels for comprehensive evaluation</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <FlashOnIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>Real-Time Analytics</h3>
-            <p>Instant insights into student performance with AI-powered recommendations for improvement</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <BarChartIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>Smart Reporting</h3>
-            <p>Comprehensive dashboards showing class-wide trends and individual student progress</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <SmartToyIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>AI-Powered Insights</h3>
-            <p>Personalized feedback generated using advanced language models from Hugging Face</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon-large">
-              <LockIcon style={{ fontSize: '48px', color: '#A47C48' }} />
-            </div>
-            <h3>Secure & Free</h3>
-            <p>Built on Firebase with Google Authentication - reliable, scalable, and completely free</p>
-          </div>
-        </div>
-      </div>
+      <motion.div
+        className="features-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={staggerContainer}
+      >
+        <motion.h2
+          className="features-title"
+          variants={fadeInUp}
+        >
+          Why Choose EduPortal?
+        </motion.h2>
+        <motion.div
+          className="features-grid"
+          variants={staggerContainer}
+        >
+          {[
+            { icon: <EmojiEventsIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "Adaptive Learning", desc: "Questions dynamically adjust based on student performance, ensuring optimal challenge levels" },
+            { icon: <PsychologyIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "Bloom's Taxonomy", desc: "Assess cognitive skills across Remember, Understand, and Apply levels for comprehensive evaluation" },
+            { icon: <FlashOnIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "Real-Time Analytics", desc: "Instant insights into student performance with AI-powered recommendations for improvement" },
+            { icon: <BarChartIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "Smart Reporting", desc: "Comprehensive dashboards showing class-wide trends and individual student progress" },
+            { icon: <SmartToyIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "AI-Powered Insights", desc: "Personalized feedback generated using advanced language models from Hugging Face" },
+            { icon: <LockIcon style={{ fontSize: '48px', color: '#A47C48' }} />, title: "Secure & Free", desc: "Built on Firebase with Google Authentication - reliable, scalable, and completely free" }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              className="feature-card"
+              variants={scaleIn}
+              whileHover={{
+                y: -12,
+                boxShadow: "0 20px 60px rgba(164, 124, 72, 0.35)",
+                transition: { duration: 0.3 }
+              }}
+            >
+              <motion.div
+                className="feature-icon-large"
+                whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                transition={{ duration: 0.5 }}
+              >
+                {feature.icon}
+              </motion.div>
+              <h3>{feature.title}</h3>
+              <p>{feature.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* How It Works Section */}
-      <div className="how-it-works-section">
-        <h2 className="section-title">How It Works</h2>
-        <div className="steps-container">
-          <div className="step-card">
-            <div className="step-number">1</div>
-            <h3>Create Classroom</h3>
-            <p>Teachers create classrooms and generate unique join codes for students</p>
-          </div>
-          <div className="step-arrow">→</div>
-          <div className="step-card">
-            <div className="step-number">2</div>
-            <h3>Build Assessment</h3>
-            <p>Create adaptive assessments with questions tagged by difficulty and Bloom level</p>
-          </div>
-          <div className="step-arrow">→</div>
-          <div className="step-card">
-            <div className="step-number">3</div>
-            <h3>Students Take Exam</h3>
-            <p>Questions adapt in real-time based on correctness and response speed</p>
-          </div>
-          <div className="step-arrow">→</div>
-          <div className="step-card">
-            <div className="step-number">4</div>
-            <h3>AI Analysis</h3>
-            <p>Get personalized insights and recommendations powered by AI</p>
-          </div>
-        </div>
-      </div>
+      <motion.div
+        className="how-it-works-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={staggerContainer}
+      >
+        <motion.h2
+          className="section-title"
+          variants={fadeInUp}
+        >
+          How It Works
+        </motion.h2>
+        <motion.div
+          className="steps-container"
+          variants={staggerContainer}
+        >
+          {[
+            { num: "1", title: "Create Classroom", desc: "Teachers create classrooms and generate unique join codes for students", dir: slideInLeft },
+            { num: "2", title: "Build Assessment", desc: "Create adaptive assessments with questions tagged by difficulty and Bloom level", dir: slideInRight },
+            { num: "3", title: "Students Take Exam", desc: "Questions adapt in real-time based on correctness and response speed", dir: slideInLeft },
+            { num: "4", title: "AI Analysis", desc: "Get personalized insights and recommendations powered by AI", dir: slideInRight }
+          ].map((step, index) => (
+            <React.Fragment key={index}>
+              <motion.div
+                className="step-card"
+                variants={step.dir}
+                whileHover={{
+                  scale: 1.08,
+                  y: -8,
+                  boxShadow: "0 15px 50px rgba(164, 124, 72, 0.35)",
+                  transition: { duration: 0.3 }
+                }}
+              >
+                <motion.div
+                  className="step-number"
+                  whileHover={{ scale: 1.2, rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {step.num}
+                </motion.div>
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+              </motion.div>
+              {index < 3 && (
+                <motion.div
+                  className="step-arrow"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + (index * 0.2), duration: 0.4 }}
+                >
+                  →
+                </motion.div>
+              )}
+            </React.Fragment>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* Footer */}
-      <div className="landing-footer">
-        <p>Built with React + Firebase + Hugging Face AI</p>
-        <p style={{ marginTop: '8px', fontSize: '14px', opacity: 0.7 }}>
+      <motion.div
+        className="landing-footer"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+        >
+          Built with React + Firebase + Hugging Face AI
+        </motion.p>
+        <motion.p
+          style={{ marginTop: '8px', fontSize: '14px', opacity: 0.7 }}
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 0.7 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
           Transforming education through adaptive technology
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     </div>
   );
 };
