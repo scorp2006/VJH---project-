@@ -43,6 +43,10 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
     title: "",
     description: "",
     duration: 30,
+    dueDate: "",
+    endDate: "",
+    timeLimit: 60,
+    maxAttempts: 1,
   });
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -59,11 +63,11 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
     timeEstimate: 60,
   });
 
-  const handleDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setAssessmentDetails((prev) => ({
       ...prev,
-      [name]: name === 'duration' ? parseInt(value) || 0 : value,
+      [name]: ['duration', 'timeLimit', 'maxAttempts'].includes(name) ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -333,6 +337,10 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
         title: assessmentDetails.title,
         description: assessmentDetails.description,
         duration: assessmentDetails.duration,
+        dueDate: assessmentDetails.dueDate ? Timestamp.fromDate(new Date(assessmentDetails.dueDate)) : null,
+        endDate: assessmentDetails.endDate ? Timestamp.fromDate(new Date(assessmentDetails.endDate)) : null,
+        timeLimit: assessmentDetails.timeLimit,
+        maxAttempts: assessmentDetails.maxAttempts,
         questions: questions,
         status: 'draft',
         createdAt: Timestamp.now(),
@@ -340,7 +348,15 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
       });
 
       // Reset form
-      setAssessmentDetails({ title: "", description: "", duration: 30 });
+      setAssessmentDetails({
+        title: "",
+        description: "",
+        duration: 30,
+        dueDate: "",
+        endDate: "",
+        timeLimit: 60,
+        maxAttempts: 1,
+      });
       setQuestions([]);
       setCurrentStep('details');
       onSuccess();
@@ -360,6 +376,11 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create Assessment">
+      <style>{`
+        .modal {
+          max-width: 800px !important;
+        }
+      `}</style>
       {error && (
         <div style={{
           padding: '12px',
@@ -439,6 +460,84 @@ const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
               max="180"
               required
             />
+          </div>
+
+          {/* Time Controls Section */}
+          <div style={{
+            marginTop: '24px',
+            marginBottom: '24px',
+            padding: '16px',
+            backgroundColor: '#F5E8C7',
+            borderRadius: '8px',
+            border: '2px solid #A47C48'
+          }}>
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#4B2E05' }}>
+              ⏰ Assessment Schedule & Limits
+            </h4>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label className="form-label" htmlFor="dueDate">Due Date (Soft Deadline)</label>
+                <input
+                  type="datetime-local"
+                  id="dueDate"
+                  name="dueDate"
+                  className="form-input"
+                  value={assessmentDetails.dueDate}
+                  onChange={handleDetailsChange}
+                />
+                <small className="form-help">Students can see when it's due</small>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label className="form-label" htmlFor="endDate">End Date (Hard Deadline)</label>
+                <input
+                  type="datetime-local"
+                  id="endDate"
+                  name="endDate"
+                  className="form-input"
+                  value={assessmentDetails.endDate}
+                  onChange={handleDetailsChange}
+                />
+                <small className="form-help">Assessment closes automatically</small>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label className="form-label" htmlFor="timeLimit">Time Limit (minutes per attempt)</label>
+                <input
+                  type="number"
+                  id="timeLimit"
+                  name="timeLimit"
+                  className="form-input"
+                  value={assessmentDetails.timeLimit}
+                  onChange={handleDetailsChange}
+                  min="5"
+                  max="180"
+                  required
+                />
+                <small className="form-help">Student has this much time once started</small>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label className="form-label" htmlFor="maxAttempts">Maximum Attempts</label>
+                <select
+                  id="maxAttempts"
+                  name="maxAttempts"
+                  className="form-select"
+                  value={assessmentDetails.maxAttempts}
+                  onChange={handleDetailsChange}
+                  required
+                >
+                  <option value="1">1 - One Shot Only</option>
+                  <option value="2">2 - Two Attempts</option>
+                  <option value="3">3 - Three Attempts</option>
+                  <option value="-1">Unlimited Practice</option>
+                </select>
+                <small className="form-help">How many times students can take it</small>
+              </div>
+            </div>
           </div>
 
           <div className="modal-footer">

@@ -22,6 +22,10 @@ interface Assessment {
   title: string;
   description: string;
   duration: number;
+  timeLimit?: number;
+  endDate?: any;
+  dueDate?: any;
+  maxAttempts?: number;
   questions: Question[];
   classroomId: string;
   teacherId: string;
@@ -45,6 +49,8 @@ const StudentExamInterface: React.FC = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [startTime] = useState<Date>(new Date());
+  const [deadlineType, setDeadlineType] = useState<'timeLimit' | 'endDate' | 'duration'>('duration');
 
   // Rasch Model adaptive testing state
   const [raschEngine, setRaschEngine] = useState<RaschAdaptiveEngine | null>(null);
@@ -67,7 +73,49 @@ const StudentExamInterface: React.FC = () => {
         if (assessmentDoc.exists()) {
           const data = { ...assessmentDoc.data(), id: assessmentDoc.id } as Assessment;
           setAssessment(data);
-          setTimeRemaining(data.duration * 60); // Convert minutes to seconds
+
+          // Calculate time remaining based on timeLimit or endDate (whichever comes first)
+          let calculatedTimeRemaining: number;
+          let activeDeadlineType: 'timeLimit' | 'endDate' | 'duration' = 'duration';
+
+          // Priority 1: Check if there's a hard endDate deadline
+          if (data.endDate) {
+            const endDate = data.endDate.toDate ? data.endDate.toDate() : new Date(data.endDate);
+            const now = new Date();
+            const secondsUntilEnd = Math.floor((endDate.getTime() - now.getTime()) / 1000);
+
+            if (secondsUntilEnd <= 0) {
+              // Assessment has already ended
+              alert('This assessment has already ended and is no longer accepting submissions.');
+              navigate(-1);
+              return;
+            }
+
+            // Priority 2: Check if there's a timeLimit per attempt
+            if (data.timeLimit) {
+              const timeLimitSeconds = data.timeLimit * 60;
+              // Use whichever is smaller - time until endDate or timeLimit
+              calculatedTimeRemaining = Math.min(secondsUntilEnd, timeLimitSeconds);
+              activeDeadlineType = secondsUntilEnd < timeLimitSeconds ? 'endDate' : 'timeLimit';
+            } else {
+              // No timeLimit, use endDate only
+              calculatedTimeRemaining = secondsUntilEnd;
+              activeDeadlineType = 'endDate';
+            }
+          } else if (data.timeLimit) {
+            // No endDate but has timeLimit
+            calculatedTimeRemaining = data.timeLimit * 60;
+            activeDeadlineType = 'timeLimit';
+          } else {
+            // Fallback to duration (old behavior)
+            calculatedTimeRemaining = data.duration * 60;
+            activeDeadlineType = 'duration';
+          }
+
+          setTimeRemaining(calculatedTimeRemaining);
+          setDeadlineType(activeDeadlineType);
+
+          console.log(`⏰ Timer set: ${Math.floor(calculatedTimeRemaining / 60)} minutes (${activeDeadlineType})`);
 
           // Set max questions from assessment length
           maxQuestions.current = data.questions.length;
@@ -331,17 +379,24 @@ const StudentExamInterface: React.FC = () => {
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{
-              backgroundColor: timeRemaining < 60 ? '#F44336' : '#A47C48',
-              color: 'white',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              fontSize: '24px',
-              fontWeight: '700',
-              minWidth: '120px',
-              textAlign: 'center'
-            }}>
-              {formatTime(timeRemaining)}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{
+                backgroundColor: timeRemaining < 60 ? '#F44336' : timeRemaining < 300 ? '#FF9800' : '#A47C48',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '24px',
+                fontWeight: '700',
+                minWidth: '120px',
+                textAlign: 'center'
+              }}>
+                ⏱ {formatTime(timeRemaining)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                {deadlineType === 'timeLimit' && 'Time Limit'}
+                {deadlineType === 'endDate' && 'Assessment Closes'}
+                {deadlineType === 'duration' && 'Estimated Duration'}
+              </div>
             </div>
           </div>
         </div>

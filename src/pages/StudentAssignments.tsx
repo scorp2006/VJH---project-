@@ -34,6 +34,10 @@ interface Assessment {
   title: string;
   description: string;
   duration: number;
+  timeLimit?: number;
+  dueDate?: any;
+  endDate?: any;
+  maxAttempts?: number;
   questions: any[];
   status: 'draft' | 'published' | 'closed';
   createdAt: any;
@@ -101,8 +105,78 @@ const StudentAssignments: React.FC = () => {
     return unsubscribe;
   }, [id]);
 
-  const handleStartAssessment = (assessmentId: string) => {
-    navigate(`/student/exam/${assessmentId}`);
+  const getAssessmentStatus = (assessment: Assessment): {
+    status: 'closed' | 'due-soon' | 'open' | 'upcoming';
+    label: string;
+    color: string;
+  } => {
+    const now = new Date();
+
+    // Check if assessment has ended (hard deadline)
+    if (assessment.endDate) {
+      const endDate = assessment.endDate.toDate ? assessment.endDate.toDate() : new Date(assessment.endDate);
+      if (now > endDate) {
+        return { status: 'closed', label: 'CLOSED', color: '#999' };
+      }
+    }
+
+    // Check due date (soft deadline)
+    if (assessment.dueDate) {
+      const dueDate = assessment.dueDate.toDate ? assessment.dueDate.toDate() : new Date(assessment.dueDate);
+      const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (now > dueDate && !assessment.endDate) {
+        // Past due but no hard deadline
+        return { status: 'due-soon', label: 'PAST DUE', color: '#FF9800' };
+      } else if (hoursUntilDue <= 24 && hoursUntilDue > 0) {
+        return { status: 'due-soon', label: 'DUE SOON', color: '#FF5722' };
+      }
+    }
+
+    return { status: 'open', label: 'OPEN', color: '#4CAF50' };
+  };
+
+  const formatDeadline = (assessment: Assessment): string | null => {
+    const now = new Date();
+
+    if (assessment.endDate) {
+      const endDate = assessment.endDate.toDate ? assessment.endDate.toDate() : new Date(assessment.endDate);
+      const hoursUntilEnd = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (hoursUntilEnd < 0) {
+        return `Closed ${endDate.toLocaleDateString()}`;
+      } else if (hoursUntilEnd < 24) {
+        return `Closes in ${Math.floor(hoursUntilEnd)}h`;
+      } else {
+        return `Closes ${endDate.toLocaleDateString()}`;
+      }
+    }
+
+    if (assessment.dueDate) {
+      const dueDate = assessment.dueDate.toDate ? assessment.dueDate.toDate() : new Date(assessment.dueDate);
+      const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (hoursUntilDue < 0) {
+        return `Due ${dueDate.toLocaleDateString()}`;
+      } else if (hoursUntilDue < 24) {
+        return `Due in ${Math.floor(hoursUntilDue)}h`;
+      } else {
+        return `Due ${dueDate.toLocaleDateString()}`;
+      }
+    }
+
+    return null;
+  };
+
+  const handleStartAssessment = (assessment: Assessment) => {
+    // Check if assessment is closed
+    const status = getAssessmentStatus(assessment);
+    if (status.status === 'closed') {
+      alert('This assessment has ended and is no longer accepting submissions.');
+      return;
+    }
+
+    navigate(`/student/exam/${assessment.id}`);
   };
 
   if (loading) {
@@ -130,16 +204,6 @@ const StudentAssignments: React.FC = () => {
       </div>
     );
   }
-
-  const getAssignmentStatus = (assignmentId: string) => {
-    // Will implement with Firebase in next phase
-    return "pending";
-  };
-
-  const getAssignmentScore = (assignmentId: string) => {
-    // Will implement with Firebase in next phase
-    return undefined;
-  };
 
   const handleSubmitAssignment = (assignmentId: string) => {
     setSelectedAssignment(assignmentId);
@@ -232,35 +296,83 @@ const StudentAssignments: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-2 gap-6">
-              {assessments.map((assessment) => (
-                <Card
-                  key={assessment.id}
-                  title={assessment.title}
-                  subtitle={`${assessment.questions.length} Questions • ${assessment.duration} minutes`}
-                >
-                  <div className="assignment-description">
-                    {assessment.description}
-                  </div>
+              {assessments.map((assessment) => {
+                const statusInfo = getAssessmentStatus(assessment);
+                const deadline = formatDeadline(assessment);
+                const isClosed = statusInfo.status === 'closed';
 
-                  <div className="assignment-footer" style={{ marginTop: '16px' }}>
-                    <span className="status status-completed">
-                      PUBLISHED
-                    </span>
-                    <span className="assignment-date">
-                      Published{" "}
-                      {assessment.publishedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
-                    </span>
-                  </div>
-
-                  <button
-                    className="btn btn-primary"
-                    style={{ width: '100%', marginTop: '16px' }}
-                    onClick={() => handleStartAssessment(assessment.id)}
+                return (
+                  <Card
+                    key={assessment.id}
+                    title={assessment.title}
+                    subtitle={`${assessment.questions.length} Questions${assessment.timeLimit ? ` • ${assessment.timeLimit} min limit` : ''}`}
                   >
-                    Start Assessment
-                  </button>
-                </Card>
-              ))}
+                    <div className="assignment-description">
+                      {assessment.description}
+                    </div>
+
+                    {/* Time limits info */}
+                    {(assessment.timeLimit || assessment.maxAttempts) && (
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '8px 12px',
+                        backgroundColor: '#F5E8C7',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        display: 'flex',
+                        gap: '12px',
+                        flexWrap: 'wrap'
+                      }}>
+                        {assessment.timeLimit && (
+                          <span style={{ color: '#4B2E05' }}>
+                            ⏱ {assessment.timeLimit} min time limit
+                          </span>
+                        )}
+                        {assessment.maxAttempts && (
+                          <span style={{ color: '#4B2E05' }}>
+                            🎯 {assessment.maxAttempts === -1 ? 'Unlimited' : assessment.maxAttempts} attempt{assessment.maxAttempts !== 1 && assessment.maxAttempts !== -1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="assignment-footer" style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span
+                        className="status"
+                        style={{
+                          backgroundColor: statusInfo.color,
+                          color: 'white',
+                          padding: '4px 12px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: '600'
+                        }}
+                      >
+                        {statusInfo.label}
+                      </span>
+                      {deadline && (
+                        <span style={{ fontSize: '13px', color: statusInfo.status === 'due-soon' ? '#FF5722' : '#666' }}>
+                          {deadline}
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      className="btn btn-primary"
+                      style={{
+                        width: '100%',
+                        marginTop: '16px',
+                        opacity: isClosed ? 0.5 : 1,
+                        cursor: isClosed ? 'not-allowed' : 'pointer'
+                      }}
+                      onClick={() => handleStartAssessment(assessment)}
+                      disabled={isClosed}
+                    >
+                      {isClosed ? 'Assessment Closed' : 'Start Assessment'}
+                    </button>
+                  </Card>
+                );
+              })}
             </div>
           )}
             </div>
