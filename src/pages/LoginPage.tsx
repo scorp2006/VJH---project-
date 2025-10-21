@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider } from '../firebase/config';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const LoginPage: React.FC = () => {
@@ -24,7 +24,10 @@ const LoginPage: React.FC = () => {
       const userRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userRef);
 
-      if (!userDoc.exists()) {
+      const isNewUser = !userDoc.exists();
+
+      if (isNewUser) {
+        // First time login - create new user
         await setDoc(userRef, {
           id: user.uid,
           email: user.email,
@@ -33,10 +36,37 @@ const LoginPage: React.FC = () => {
           avatar: user.photoURL,
           createdAt: new Date().toISOString()
         });
+
+        // For new users, sign out and sign back in to force AuthContext refresh
+        console.log('New user created, refreshing auth state...');
+        await signOut(auth);
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Sign in again
+        const secondResult = await signInWithPopup(auth, googleProvider);
+        console.log('Re-authenticated successfully');
+      } else {
+        // Existing user - update role if it changed
+        const existingRole = userDoc.data()?.role;
+        if (existingRole !== role) {
+          await setDoc(userRef, {
+            ...userDoc.data(),
+            role: role
+          }, { merge: true });
+
+          // Role changed, also refresh
+          console.log('Role updated, refreshing auth state...');
+          await signOut(auth);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          await signInWithPopup(auth, googleProvider);
+        }
       }
 
       // Clear pending role
       sessionStorage.removeItem('pendingRole');
+
+      // Wait a bit for AuthContext to update
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       // Redirect to dashboard
       if (role === 'teacher') {

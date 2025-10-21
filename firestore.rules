@@ -1,8 +1,111 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper function to get user role
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper function to check if user is a teacher
+    function isTeacher() {
+      return isAuthenticated() && getUserRole() == 'teacher';
+    }
+
+    // Helper function to check if user is a student
+    function isStudent() {
+      return isAuthenticated() && getUserRole() == 'student';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own data
+      allow read: if isOwner(userId);
+      // Users can create their own profile during signup
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Users can update their own profile
+      allow update: if isOwner(userId);
+      // No one can delete users
+      allow delete: if false;
+    }
+
+    // Classrooms collection
+    match /classrooms/{classroomId} {
+      // Anyone authenticated can read classroom basic info
+      allow read: if isAuthenticated();
+      // Only teachers can create classrooms
+      allow create: if isTeacher();
+      // Only the teacher who created the classroom can update it
+      allow update: if isAuthenticated() &&
+                       resource.data.teacherId == request.auth.uid;
+      // Only the teacher who created it can delete
+      allow delete: if isAuthenticated() &&
+                       resource.data.teacherId == request.auth.uid;
+    }
+
+    // Assignments/Assessments collection
+    match /assessments/{assessmentId} {
+      // Students and teachers can read assessments
+      allow read: if isAuthenticated();
+      // Only teachers can create assessments
+      allow create: if isTeacher();
+      // Only the teacher who created it can update
+      allow update: if isAuthenticated() &&
+                       resource.data.teacherId == request.auth.uid;
+      // Only the teacher who created it can delete
+      allow delete: if isAuthenticated() &&
+                       resource.data.teacherId == request.auth.uid;
+    }
+
+    // Submissions collection
+    match /submissions/{submissionId} {
+      // Students can read their own submissions
+      // Teachers can read all submissions
+      allow read: if isAuthenticated() &&
+                     (resource.data.studentId == request.auth.uid ||
+                      isTeacher());
+      // Only students can create submissions for themselves
+      allow create: if isAuthenticated() &&
+                       request.resource.data.studentId == request.auth.uid;
+      // Students can update their own ungraded submissions
+      // Teachers can update any submission (for grading)
+      allow update: if isAuthenticated() &&
+                       (request.auth.uid == resource.data.studentId ||
+                        isTeacher());
+      // Only teachers can delete submissions
+      allow delete: if isTeacher();
+    }
+
+    // Student Analytics
+    match /analytics/{analyticsId} {
+      // Students can read their own analytics
+      // Teachers can read all analytics
+      allow read: if isAuthenticated() &&
+                     (resource.data.studentId == request.auth.uid ||
+                      isTeacher());
+      // Only system/teachers can write analytics
+      allow write: if isTeacher();
+    }
+
+    // Questions collection (for question banks)
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher();
+    }
+
+    // Any other collections - deny by default for security
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }
