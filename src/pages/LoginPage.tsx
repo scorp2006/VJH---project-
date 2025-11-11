@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider } from '../firebase/config';
 import { signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  // Watch for currentUser updates and navigate when ready
+  useEffect(() => {
+    if (currentUser && pendingNavigation) {
+      console.log('✅ User authenticated, navigating to:', pendingNavigation);
+      navigate(pendingNavigation);
+      setPendingNavigation(null);
+      setLoading(false);
+    }
+  }, [currentUser, pendingNavigation, navigate]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -49,26 +62,23 @@ const LoginPage: React.FC = () => {
       // Clear pending role
       sessionStorage.removeItem('pendingRole');
 
-      // Wait for AuthContext to update
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Set pending navigation - the useEffect will navigate when currentUser is set
+      const targetPath = role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
+      setPendingNavigation(targetPath);
+      console.log('⏳ Waiting for AuthContext to update...');
 
-      // Redirect to dashboard
-      if (role === 'teacher') {
-        navigate('/teacher/dashboard');
-      } else {
-        navigate('/student/dashboard');
-      }
     } catch (error: any) {
       console.error('Sign-in error:', error);
+      setLoading(false);
       if (error.code === 'auth/popup-closed-by-user') {
         setError('Sign-in cancelled. Please try again.');
       } else if (error.code === 'auth/popup-blocked') {
         setError('Pop-up blocked. Please allow pop-ups for this site.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized. Please contact the administrator.');
       } else {
         setError('Failed to sign in. Please check your internet connection and try again.');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
